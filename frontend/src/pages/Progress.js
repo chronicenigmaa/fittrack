@@ -31,12 +31,24 @@ export default function Progress() {
 
   const logStat = async () => {
     if (!newStat.weight_kg) return toast.error('Enter weight');
-    await api.post('/api/body-stats', { ...newStat, photo_base64: photo });
-    toast.success('Stats logged!');
-    setModal(null);
-    setNewStat({ weight_kg:'', height_cm:'', body_fat_pct:'', notes:'' });
-    setPhoto(null);
-    loadAll();
+    const payload = {
+      weight_kg: parseFloat(newStat.weight_kg),
+      height_cm: newStat.height_cm ? parseFloat(newStat.height_cm) : null,
+      body_fat_pct: newStat.body_fat_pct ? parseFloat(newStat.body_fat_pct) : null,
+      notes: newStat.notes?.trim() || null,
+      photo_base64: photo || null,
+    };
+
+    try {
+      await api.post('/api/body-stats', payload);
+      toast.success('Stats logged!');
+      setModal(null);
+      setNewStat({ weight_kg:'', height_cm:'', body_fat_pct:'', notes:'' });
+      setPhoto(null);
+      loadAll();
+    } catch (e) {
+      toast.error(e.message || 'Stats could not be saved');
+    }
   };
 
   const handlePhoto = (e) => {
@@ -127,7 +139,7 @@ export default function Progress() {
           {/* Stats grid */}
           <div className="stat-grid">
             <div className="stat-card">
-              <div className="stat-icon">⚖️</div>
+              <div className="stat-icon">Weight</div>
               <div className="stat-value">{latest?.weight_kg || '—'}kg</div>
               <div className="stat-label">Current Weight</div>
               {prev && <div style={{ fontSize:11, marginTop:4, color: parseFloat(latest.weight_kg)<parseFloat(prev.weight_kg)?'var(--accent)':'var(--red)' }}>
@@ -135,17 +147,17 @@ export default function Progress() {
               </div>}
             </div>
             <div className="stat-card">
-              <div className="stat-icon">🔥</div>
+              <div className="stat-icon">TDEE</div>
               <div className="stat-value">{tdee || '—'}</div>
               <div className="stat-label">TDEE (kcal/day)</div>
             </div>
             <div className="stat-card">
-              <div className="stat-icon">📉</div>
+              <div className="stat-icon">Deficit</div>
               <div className="stat-value">{deficit ? (deficit > 0 ? `-${deficit}` : `+${Math.abs(deficit)}`) : '—'}</div>
               <div className="stat-label">{deficit && deficit > 0 ? 'Calorie Deficit' : 'Calorie Surplus'}</div>
             </div>
             <div className="stat-card">
-              <div className="stat-icon">📊</div>
+              <div className="stat-icon">Logs</div>
               <div className="stat-value">{bodyStats.length}</div>
               <div className="stat-label">Check-ins</div>
             </div>
@@ -173,7 +185,7 @@ export default function Progress() {
       {tab === 'weight' && (
         <div className="section">
           {weightData.length < 2 ? (
-            <div className="empty"><div className="empty-icon">📊</div><div className="empty-text">Log at least 2 weigh-ins to see chart</div></div>
+            <div className="empty"><div className="empty-icon">Trend</div><div className="empty-text">Log at least 2 weigh-ins to see chart</div></div>
           ) : (
             <div className="card">
               <div style={{ fontFamily:'var(--font-head)', fontSize:14, fontWeight:700, marginBottom:12 }}>Weight History</div>
@@ -196,7 +208,7 @@ export default function Progress() {
           <div style={{ marginTop:12 }}>
             {bodyStats.map(b=>(
               <div key={b.id} className="list-item">
-                <div className="list-item-icon">⚖️</div>
+                <div className="list-item-icon">Wt</div>
                 <div className="list-item-content">
                   <div className="list-item-title">{parseFloat(b.weight_kg)}kg</div>
                   <div className="list-item-sub">{new Date(b.logged_at).toLocaleDateString('en-PK',{day:'numeric',month:'short',year:'numeric'})}</div>
@@ -211,14 +223,14 @@ export default function Progress() {
 
       {tab === 'photos' && (
         <div className="section">
-          <button className="btn btn-outline" style={{ marginBottom:16 }} onClick={()=>setModal('log')}>📷 Add Progress Photo</button>
+          <button className="btn btn-outline" style={{ marginBottom:16 }} onClick={()=>setModal('log')}>Add Progress Photo</button>
           {photos.length === 0 ? (
-            <div className="empty"><div className="empty-icon">📷</div><div className="empty-text">No progress photos yet</div></div>
+            <div className="empty"><div className="empty-icon">Photos</div><div className="empty-text">No progress photos yet</div></div>
           ) : (
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
               {photos.map(p=>(
                 <div key={p.id} className="card" style={{ padding:0, overflow:'hidden', cursor:'pointer' }} onClick={()=>viewPhoto(p.id)}>
-                  <div style={{ background:'var(--card2)', height:140, display:'flex', alignItems:'center', justifyContent:'center', fontSize:40 }}>📷</div>
+                  <div style={{ background:'var(--card2)', height:140, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--muted)', fontSize:12, fontWeight:700, textTransform:'uppercase' }}>Photo</div>
                   <div style={{ padding:'8px 10px' }}>
                     <div style={{ fontSize:12, fontWeight:600 }}>{parseFloat(p.weight_kg)}kg</div>
                     <div style={{ fontSize:11, color:'var(--muted)' }}>{new Date(p.logged_at).toLocaleDateString('en-PK',{day:'numeric',month:'short'})}</div>
@@ -233,11 +245,11 @@ export default function Progress() {
       {tab === 'predict' && (
         <div className="section">
           <div className="predict-card" style={{ marginBottom:16, textAlign:'center' }}>
-            <div style={{ fontSize:32, marginBottom:4 }}>🔮</div>
+            <div className="stat-icon" style={{ marginBottom:4 }}>Forecast</div>
             <div style={{ fontFamily:'var(--font-head)', fontSize:18, fontWeight:700 }}>AI Progress Prediction</div>
             <div style={{ fontSize:13, color:'var(--muted)', margin:'8px 0 16px' }}>Get AI-powered predictions based on your actual data</div>
             <button className="btn" onClick={getPrediction} disabled={predLoading}>
-              {predLoading ? <><span className="spinner" style={{width:16,height:16}} /> Analyzing...</> : '✨ Predict My Progress'}
+              {predLoading ? <><span className="spinner" style={{width:16,height:16}} /> Analyzing...</> : 'Predict My Progress'}
             </button>
           </div>
 
@@ -274,7 +286,7 @@ export default function Progress() {
                   <div className="section-title">Personalized Tips</div>
                   {prediction.advice.map((tip, i) => (
                     <div key={i} className="card-sm" style={{ marginBottom:8, display:'flex', gap:10, alignItems:'flex-start' }}>
-                      <span style={{ fontSize:20 }}>💡</span>
+                      <span className="stat-icon">Tip</span>
                       <span style={{ fontSize:14, color:'var(--muted)', flex:1 }}>{tip}</span>
                     </div>
                   ))}
@@ -312,11 +324,11 @@ export default function Progress() {
             <div className="form-group">
               <label className="label">Progress Photo (optional)</label>
               <button className="btn btn-ghost" onClick={()=>fileRef.current.click()}>
-                {photo ? '✅ Photo selected' : '📷 Choose Photo'}
+                {photo ? 'Photo selected' : 'Choose Photo'}
               </button>
               <input ref={fileRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handlePhoto} />
             </div>
-            <button className="btn" onClick={logStat}>✓ Save Stats</button>
+            <button className="btn" onClick={logStat}>Save Stats</button>
           </div>
         </div>
       )}

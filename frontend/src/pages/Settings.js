@@ -41,7 +41,7 @@ export default function Settings() {
 
   const upd = (k, v) => setSettings(prev => ({ ...prev, [k]: v }));
 
-  const bmi = calcBMI(parseFloat(settings.weight_kg || settings.height_cm), parseFloat(settings.height_cm));
+  const bmi = calcBMI(parseFloat(settings.weight_kg), parseFloat(settings.height_cm));
   const tdee = calcCalorieNeeds(parseFloat(settings.weight_kg), parseFloat(settings.height_cm), parseInt(settings.age)||25, settings.gender||'male', settings.activity||'moderate');
 
   const toggleSamsungHealth = () => {
@@ -67,7 +67,7 @@ export default function Settings() {
     <div className="fade-in">
       <div className="page-header">
         <div><div className="page-title">Settings</div><div className="page-subtitle">Profile & Goals</div></div>
-        <button className={`btn btn-sm ${saved?'btn-ghost':''}`} onClick={saveAll}>{saved ? '✓ Saved' : 'Save'}</button>
+        <button className={`btn btn-sm ${saved?'btn-ghost':''}`} onClick={saveAll}>{saved ? 'Saved' : 'Save'}</button>
       </div>
 
       <div className="section">
@@ -112,7 +112,7 @@ export default function Settings() {
                   <div style={{ fontSize:14, fontWeight:600 }}>{opt.label}</div>
                   <div style={{ fontSize:12, color:'var(--muted)' }}>{opt.desc}</div>
                 </div>
-                {settings.activity===opt.value && <span className="badge badge-green">✓</span>}
+                {settings.activity===opt.value && <span className="badge badge-green">Selected</span>}
               </div>
             </div>
           ))}
@@ -189,18 +189,18 @@ export default function Settings() {
           </div>
         </div>
         <button className="btn btn-outline" style={{ marginBottom:16 }} onClick={requestNotifPermission}>
-          🔔 Enable Push Notifications
+          Enable Push Notifications
         </button>
 
         {/* Samsung Health */}
         <div className="section-title">Integrations</div>
         <div className="health-card" style={{ marginBottom:16 }}>
-          <div style={{ fontSize:32 }}>❤️</div>
+          <div className="stat-icon">Health</div>
           <div style={{ flex:1 }}>
             <div style={{ fontFamily:'var(--font-head)', fontWeight:700 }}>Samsung Health</div>
             <div style={{ fontSize:12, color:'var(--muted)', marginTop:2 }}>Sync steps, heart rate & calories burned</div>
             <div style={{ fontSize:11, color:'var(--muted)', marginTop:4 }}>
-              {samsungLinked ? '✅ Connected – data syncs automatically' : 'Tap to connect via Samsung Health SDK'}
+              {samsungLinked ? 'Connected - data syncs automatically' : 'Tap to connect via Samsung Health SDK'}
             </div>
           </div>
           <button className={`btn btn-sm ${samsungLinked?'btn-red':'btn-outline'}`} onClick={toggleSamsungHealth}>
@@ -209,7 +209,7 @@ export default function Settings() {
         </div>
         <div className="card-sm" style={{ marginBottom:8, opacity:0.7 }}>
           <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-            <span style={{ fontSize:24 }}>🍎</span>
+            <span className="stat-icon">iOS</span>
             <div>
               <div style={{ fontWeight:600, fontSize:14 }}>Apple Health</div>
               <div style={{ fontSize:12, color:'var(--muted)' }}>Available on iOS version</div>
@@ -219,7 +219,7 @@ export default function Settings() {
         </div>
 
         <button className="btn" style={{ marginTop:8 }} onClick={saveAll}>
-          {saved ? '✅ Saved!' : '💾 Save All Settings'}
+          {saved ? 'Saved' : 'Save All Settings'}
         </button>
       </div>
     </div>

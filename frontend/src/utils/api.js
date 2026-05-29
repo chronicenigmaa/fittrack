@@ -1,10 +1,29 @@
-const BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const configuredBase = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const BASE = (configuredBase.startsWith('http') ? configuredBase : `https://${configuredBase}`).replace(/\/$/, '');
+
+const request = async (path, options) => {
+  const response = await fetch(`${BASE}${path}`, options);
+  const text = await response.text();
+  let data = {};
+
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(`Invalid API response from ${path}`);
+  }
+
+  if (!response.ok) {
+    throw new Error(data.error || `Request failed with ${response.status}`);
+  }
+
+  return data;
+};
 
 export const api = {
-  get: (path) => fetch(`${BASE}${path}`).then(r => r.json()),
-  post: (path, body) => fetch(`${BASE}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
-  put: (path, body) => fetch(`${BASE}${path}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
-  del: (path) => fetch(`${BASE}${path}`, { method: 'DELETE' }).then(r => r.json()),
+  get: (path) => request(path),
+  post: (path, body) => request(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+  put: (path, body) => request(path, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+  del: (path) => request(path, { method: 'DELETE' }),
 };
 
 export const calcBMI = (weight_kg, height_cm) => {

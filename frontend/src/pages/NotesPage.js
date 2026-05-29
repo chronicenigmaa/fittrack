@@ -42,7 +42,7 @@ export default function NotesPage() {
       <div className="section">
         {notes.length === 0 ? (
           <div className="empty">
-            <div className="empty-icon">📝</div>
+            <div className="empty-icon">Notes</div>
             <div className="empty-text">No notes yet</div>
             <button className="btn" style={{ maxWidth:160, margin:'12px auto 0' }} onClick={openNew}>+ Add Note</button>
           </div>
@@ -75,7 +75,7 @@ export default function NotesPage() {
               <label className="label">Content</label>
               <textarea className="input" rows={8} placeholder="Write your note..." value={form.content} onChange={e=>setForm({...form,content:e.target.value})} />
             </div>
-            <button className="btn" onClick={save}>💾 Save Note</button>
+            <button className="btn" onClick={save}>Save Note</button>
           </div>
         </div>
       )}

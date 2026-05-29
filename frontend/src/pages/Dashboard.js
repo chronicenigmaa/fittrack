@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api, today } from '../utils/api';
+import { toast } from 'react-hot-toast';
 import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts';
 
 export default function Dashboard({ onNavigate }) {
@@ -17,6 +18,14 @@ export default function Dashboard({ onNavigate }) {
     const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  const logWater = async (ml) => {
+    try {
+      await api.post('/api/water-logs', { amount_ml: ml });
+      toast.success(`+${ml}ml water logged`);
+      loadData();
+    } catch { toast.error('Failed to log water'); }
+  };
 
   const loadData = async () => {
     try {
@@ -57,8 +66,8 @@ export default function Dashboard({ onNavigate }) {
   return (
     <div className="fade-in">
       {/* Header */}
-      <div style={{ padding: '24px 20px 16px', background: 'linear-gradient(180deg, #111827 0%, #0A0F1E 100%)' }}>
-        <div className="hero-greeting">{greeting} 👋</div>
+      <div style={{ padding: '24px 20px 16px', background: 'linear-gradient(180deg, #FFFFFF 0%, #F6F8FB 100%)', borderBottom: '1px solid var(--border)' }}>
+        <div className="hero-greeting">{greeting}</div>
         <div className="hero-name">{name.split(' ')[0]}<span className="hero-accent">.</span></div>
         <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>{dateStr} · {dayName}</div>
       </div>
@@ -75,7 +84,7 @@ export default function Dashboard({ onNavigate }) {
                   {workoutPlan.exercises?.length || 0} exercises planned
                 </div>
               </div>
-              <div style={{ fontSize: 32 }}>💪</div>
+              <span className="badge badge-green">Planned</span>
             </div>
             {workoutPlan.exercises?.slice(0, 3).map((e, i) => (
               <div key={i} style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>• {e.name}</div>
@@ -86,7 +95,7 @@ export default function Dashboard({ onNavigate }) {
           </div>
         ) : (
           <div className="card" onClick={() => onNavigate('workout')} style={{ cursor: 'pointer', textAlign: 'center', padding: '24px' }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>🏖️</div>
+            <div style={{ fontFamily:'var(--font-head)', fontSize: 20, fontWeight: 800, marginBottom: 8 }}>Rest Day</div>
             <div style={{ color: 'var(--muted)', fontSize: 14 }}>No workout planned for today</div>
             <div style={{ color: 'var(--accent)', fontSize: 13, marginTop: 4 }}>Tap to set one up →</div>
           </div>
@@ -119,11 +128,27 @@ export default function Dashboard({ onNavigate }) {
         <div className="section-title">Water Intake</div>
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <span style={{ fontSize: 14 }}>💧 {water}ml / {goalWater}ml</span>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>{water} <span style={{ color: 'var(--muted)', fontWeight: 400 }}>/ {goalWater}ml</span></span>
             <span className="badge badge-blue">{Math.round((water / goalWater) * 100)}%</span>
           </div>
-          <div className="progress-bar">
+          <div className="progress-bar" style={{ marginBottom: 14 }}>
             <div className="progress-fill" style={{ width: `${Math.min(100, (water / goalWater) * 100)}%`, background: 'linear-gradient(90deg, #3B82F6, #00C896)' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+            {[200, 250, 350, 500].map(ml => (
+              <button
+                key={ml}
+                onClick={() => logWater(ml)}
+                style={{ background: 'rgba(37,99,235,0.08)', border: '1.5px solid rgba(37,99,235,0.2)', borderRadius: 10, padding: '10px 4px', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'all 0.18s' }}
+                onMouseDown={e => e.currentTarget.style.transform='scale(0.95)'}
+                onMouseUp={e => e.currentTarget.style.transform='scale(1)'}
+                onTouchStart={e => e.currentTarget.style.transform='scale(0.95)'}
+                onTouchEnd={e => e.currentTarget.style.transform='scale(1)'}
+              >
+                <div style={{ fontFamily: 'var(--font-head)', fontWeight: 800, fontSize: 15, color: '#2563eb' }}>+{ml}</div>
+                <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 1 }}>ml</div>
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -164,13 +189,13 @@ export default function Dashboard({ onNavigate }) {
         <div className="section-title">Quick Actions</div>
         <div className="stat-grid">
           {[
-            { icon: '🍽️', label: 'Log Food', tab: 'nutrition' },
-            { icon: '🏋️', label: 'Log Workout', tab: 'workout' },
-            { icon: '📊', label: 'View Progress', tab: 'progress' },
-            { icon: '📝', label: 'Notes', tab: 'notes' },
+            { icon: 'Food', label: 'Log Food', tab: 'nutrition' },
+            { icon: 'Train', label: 'Log Workout', tab: 'workout' },
+            { icon: 'Trend', label: 'View Progress', tab: 'progress' },
+            { icon: 'Notes', label: 'Notes', tab: 'notes' },
           ].map(a => (
             <div key={a.tab} className="card" onClick={() => onNavigate(a.tab)} style={{ cursor: 'pointer', textAlign: 'center', padding: 20 }}>
-              <div style={{ fontSize: 28, marginBottom: 6 }}>{a.icon}</div>
+              <div className="stat-icon" style={{ marginBottom: 6 }}>{a.icon}</div>
               <div style={{ fontSize: 13, fontWeight: 600 }}>{a.label}</div>
             </div>
           ))}

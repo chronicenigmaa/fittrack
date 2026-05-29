@@ -84,7 +84,7 @@ export default function Nutrition() {
 
   const logWater = async () => {
     await api.post('/api/water-logs', { amount_ml: waterAmount });
-    toast.success(`💧 ${waterAmount}ml logged!`);
+    toast.success(`${waterAmount}ml water logged`);
     loadAll();
   };
 
@@ -143,31 +143,35 @@ export default function Nutrition() {
           <div className="page-title">Nutrition</div>
           <div className="page-subtitle">{new Date().toLocaleDateString('en-PK',{day:'numeric',month:'short'})}</div>
         </div>
-        <button className="btn btn-sm" onClick={()=>setModal('food')}>+ Food</button>
+        <div style={{ display:'flex', gap:8 }}>
+          <button className="btn btn-sm btn-outline" onClick={()=>setTab('water')}>+ Water</button>
+          <button className="btn btn-sm" onClick={()=>setModal('food')}>+ Food</button>
+        </div>
       </div>
 
       {/* Daily summary */}
       <div className="section">
         <div className="stat-grid">
           <div className="stat-card">
-            <div className="stat-icon">🔥</div>
+            <div className="stat-icon">Kcal</div>
             <div className="stat-value">{Math.round(totalCal)}</div>
             <div className="stat-label">of {goalCal} kcal</div>
             <div className="progress-bar"><div className="progress-fill" style={{ width:`${Math.min(100,(totalCal/goalCal)*100)}%` }} /></div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">💧</div>
+            <div className="stat-icon">Water</div>
             <div className="stat-value">{totalWater}ml</div>
             <div className="stat-label">of {goalWater}ml</div>
             <div className="progress-bar"><div className="progress-fill" style={{ width:`${Math.min(100,(totalWater/goalWater)*100)}%`, background:'linear-gradient(90deg,#3B82F6,#00C896)' }} /></div>
+            <button className="btn btn-sm btn-ghost" style={{ marginTop:8, width:'100%' }} onClick={()=>setTab('water')}>Add Water</button>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">🥩</div>
+            <div className="stat-icon">Pro</div>
             <div className="stat-value">{Math.round(totalPro)}g</div>
             <div className="stat-label">Protein</div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">🍞</div>
+            <div className="stat-icon">Carb</div>
             <div className="stat-value">{Math.round(totalCarb)}g</div>
             <div className="stat-label">Carbs</div>
           </div>
@@ -177,7 +181,7 @@ export default function Nutrition() {
       <div className="tab-row">
         {['diary','water','recipes','barcode'].map(t=>(
           <button key={t} className={`tab-chip ${tab===t?'active':''}`} onClick={()=>setTab(t)}>
-            {t==='barcode'?'📷 Scan':t.charAt(0).toUpperCase()+t.slice(1)}
+            {t==='barcode'?'Scan':t.charAt(0).toUpperCase()+t.slice(1)}
           </button>
         ))}
       </div>
@@ -186,14 +190,14 @@ export default function Nutrition() {
         <div className="section">
           {logs.length === 0 ? (
             <div className="empty">
-              <div className="empty-icon">🍽️</div>
+              <div className="empty-icon">Food</div>
               <div className="empty-text">No food logged today</div>
               <button className="btn" style={{ maxWidth:180, margin:'12px auto 0' }} onClick={()=>setModal('food')}>+ Log Food</button>
             </div>
           ) : (
             logs.map(l => (
               <div key={l.id} className="list-item">
-                <div className="list-item-icon">🍽️</div>
+                <div className="list-item-icon">Food</div>
                 <div className="list-item-content">
                   <div className="list-item-title">{l.food_name}</div>
                   <div className="list-item-sub">{Math.round(l.calories * l.quantity)} kcal · P:{Math.round(l.protein*l.quantity)}g C:{Math.round(l.carbs*l.quantity)}g F:{Math.round(l.fats*l.quantity)}g</div>
@@ -219,7 +223,7 @@ export default function Nutrition() {
       {tab === 'water' && (
         <div className="section">
           <div className="card" style={{ textAlign:'center', marginBottom:16 }}>
-            <div style={{ fontSize:48, marginBottom:4 }}>💧</div>
+            <div className="stat-icon" style={{ marginBottom:4 }}>Water</div>
             <div style={{ fontFamily:'var(--font-head)', fontSize:36, fontWeight:800, color:'var(--blue)' }}>{totalWater}ml</div>
             <div style={{ color:'var(--muted)', fontSize:14 }}>Goal: {goalWater}ml</div>
             <div className="progress-bar" style={{ marginTop:12 }}>
@@ -238,12 +242,12 @@ export default function Nutrition() {
             <label className="label">Custom amount (ml)</label>
             <input className="input" type="number" value={waterAmount} onChange={e=>setWaterAmount(parseInt(e.target.value))} />
           </div>
-          <button className="btn" style={{ background:'#3B82F6' }} onClick={logWater}>💧 Log {waterAmount}ml</button>
+          <button className="btn" style={{ background:'var(--blue)' }} onClick={logWater}>Log {waterAmount}ml</button>
           <div style={{ marginTop:16 }}>
             <div className="section-title">Today's Log</div>
             {waterLogs.map(l=>(
               <div key={l.id} className="list-item">
-                <div className="list-item-icon" style={{ background:'rgba(59,130,246,0.15)' }}>💧</div>
+                <div className="list-item-icon" style={{ background:'rgba(37,99,235,0.08)', color:'var(--blue)' }}>Water</div>
                 <div className="list-item-content">
                   <div className="list-item-title">{l.amount_ml}ml</div>
                   <div className="list-item-sub">{new Date(l.logged_at).toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit'})}</div>
@@ -258,7 +262,7 @@ export default function Nutrition() {
         <div className="section">
           <button className="btn btn-outline" style={{ marginBottom:16 }} onClick={()=>setModal('recipe')}>+ Create Recipe</button>
           {recipes.length === 0 ? (
-            <div className="empty"><div className="empty-icon">👨‍🍳</div><div className="empty-text">No recipes saved yet</div></div>
+            <div className="empty"><div className="empty-icon">Recipes</div><div className="empty-text">No recipes saved yet</div></div>
           ) : (
             recipes.map(r=>(
               <div key={r.id} className="card" style={{ marginBottom:10 }}>
@@ -284,7 +288,7 @@ export default function Nutrition() {
       {tab === 'barcode' && (
         <div className="section">
           <div className="card" style={{ textAlign:'center', padding:24 }}>
-            <div style={{ fontSize:48, marginBottom:8 }}>📷</div>
+            <div className="stat-icon" style={{ marginBottom:8 }}>Scan</div>
             <div style={{ fontFamily:'var(--font-head)', fontSize:18, fontWeight:700, marginBottom:4 }}>Barcode Scanner</div>
             <div style={{ color:'var(--muted)', fontSize:13, marginBottom:16 }}>Enter barcode number from Pakistani food products</div>
           </div>
@@ -293,7 +297,7 @@ export default function Nutrition() {
             <div style={{ display:'flex', gap:8 }}>
               <input className="input" placeholder="e.g. 8901030804647" value={barcode} onChange={e=>setBarcode(e.target.value)} style={{ flex:1 }} />
               <button className="btn" style={{ width:'auto', padding:'12px 16px' }} onClick={scanBarcode} disabled={barcodeLoading}>
-                {barcodeLoading ? <span className="spinner" style={{width:16,height:16}} /> : '🔍'}
+                {barcodeLoading ? <span className="spinner" style={{width:16,height:16}} /> : 'Find'}
               </button>
             </div>
           </div>
@@ -375,7 +379,7 @@ export default function Nutrition() {
                 <input className="input" type="number" value={newFood.fats} onChange={e=>setNewFood({...newFood,fats:e.target.value})} />
               </div>
             </div>
-            <button className="btn" onClick={logFood}>✓ Log Food</button>
+            <button className="btn" onClick={logFood}>Log Food</button>
           </div>
         </div>
       )}
@@ -396,7 +400,7 @@ export default function Nutrition() {
                 value={recipe.ingredients_text} onChange={e=>setRecipe({...recipe,ingredients_text:e.target.value})} />
             </div>
             <button className="btn btn-outline" onClick={calculateRecipe} disabled={recipeLoading}>
-              {recipeLoading ? <><span className="spinner" style={{width:16,height:16}} /> Calculating...</> : '🤖 Calculate Nutrition (AI)'}
+              {recipeLoading ? <><span className="spinner" style={{width:16,height:16}} /> Calculating...</> : 'Calculate Nutrition'}
             </button>
             {recipeResult && (
               <div className="predict-card" style={{ marginTop:14 }}>
@@ -407,7 +411,7 @@ export default function Nutrition() {
                   <div><span style={{ color:'var(--muted)', fontSize:12 }}>Per Serving</span><div style={{ fontWeight:700 }}>{Math.round(recipeResult.per_serving_calories || recipeResult.total_calories/recipeResult.servings)} kcal</div></div>
                   <div><span style={{ color:'var(--muted)', fontSize:12 }}>Protein</span><div style={{ fontWeight:700, color:'#00C896' }}>{Math.round(recipeResult.total_protein)}g</div></div>
                 </div>
-                <button className="btn" style={{ marginTop:14 }} onClick={saveRecipe}>💾 Save Recipe</button>
+                <button className="btn" style={{ marginTop:14 }} onClick={saveRecipe}>Save Recipe</button>
               </div>
             )}
           </div>
