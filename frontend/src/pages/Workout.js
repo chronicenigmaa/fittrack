@@ -65,6 +65,34 @@ const getLocalDate = (date) => {
   return `${y}-${m}-${d}`;
 };
 
+const getResultsTimeline = (goal, intensity, daysPerWeek) => {
+  const freq = daysPerWeek >= 5 ? 0.8 : daysPerWeek >= 3 ? 1.0 : 1.3;
+  const w = (base) => Math.max(1, Math.round(base * freq * (intensity === 'intense' ? 0.75 : intensity === 'easy' ? 1.3 : 1.0)));
+  const TIMELINES = {
+    'fat loss': [
+      { week: w(2),  icon: '⚡', label: 'Feel the shift',   desc: 'More energy, less bloating, better sleep quality — changes you feel before you see' },
+      { week: w(5),  icon: '👕', label: 'Clothes loosen',   desc: 'Waist down 2–3 cm, scale dropping 1–2 kg, noticeably lighter on your feet' },
+      { week: w(10), icon: '🔥', label: 'Visible fat loss', desc: '4–6 kg lost, defined shoulders and arms, significant change in mirror and photos' },
+    ],
+    'gain muscle': [
+      { week: w(2),  icon: '💪', label: 'Strength spikes',  desc: 'Neural adaptation kicks in — you\'ll lift noticeably heavier before muscle actually grows' },
+      { week: w(6),  icon: '📈', label: 'Muscle fullness',  desc: 'Visible pump after sessions, arms and chest look fuller, shirts feel tighter' },
+      { week: w(12), icon: '🏆', label: 'Real size gains',  desc: '2–4 kg lean muscle added, clear size in photos, PRs on every major lift' },
+    ],
+    'maintain weight': [
+      { week: 2,  icon: '🔄', label: 'Routine locked in', desc: 'Training feels natural, energy and mood noticeably more stable' },
+      { week: 5,  icon: '⚖️', label: 'Body recomposition', desc: 'Same scale weight but better muscle-to-fat ratio, improved posture and definition' },
+      { week: 10, icon: '🏅', label: 'Peak condition',    desc: 'Athletic physique maintained, strong lifts, excellent cardiovascular base' },
+    ],
+    'improve fitness': [
+      { week: w(2), icon: '🫀', label: 'Heart adapts',      desc: 'Cardio sessions feel easier, heart rate recovers faster between sets' },
+      { week: w(4), icon: '🏃', label: 'Performance jump',  desc: 'Running pace improves, can sustain longer sessions, less soreness after workouts' },
+      { week: w(8), icon: '🥇', label: 'Athletic fitness',  desc: 'Significantly higher stamina, lean composition, strong compound lifts' },
+    ],
+  };
+  return TIMELINES[goal] || TIMELINES['improve fitness'];
+};
+
 const getExerciseMedia = (exercise) => {
   if (exercise?.demo_url) return exercise.demo_url;
   if (exercise?.category === 'Cardio') return '/exercise-media/cardio.svg';
@@ -306,6 +334,7 @@ export default function Workout() {
       location: splitConfig.location,
       intensity,
       guidance,
+      timeline: getResultsTimeline(splitConfig.goal, intensity, daysPerWeek),
     });
     setSplitLoading(false);
   };
@@ -726,6 +755,36 @@ export default function Workout() {
                   </div>
                   <div style={{ fontSize:13, color:'var(--muted)', lineHeight:1.5 }}>{generatedSplit.guidance}</div>
                 </div>
+
+                {/* Results timeline */}
+                {generatedSplit.timeline?.length > 0 && (
+                  <div style={{ marginBottom: 18 }}>
+                    <div className="section-title" style={{ marginBottom: 12 }}>Expected Results</div>
+                    {generatedSplit.timeline.map((milestone, i) => (
+                      <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: i < generatedSplit.timeline.length - 1 ? 0 : 0 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                          <div style={{
+                            width: 38, height: 38, borderRadius: '50%', fontSize: 18,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: i === 0 ? 'rgba(59,130,246,0.12)' : i === 1 ? 'rgba(217,119,6,0.12)' : 'rgba(15,159,110,0.12)',
+                          }}>{milestone.icon}</div>
+                          {i < generatedSplit.timeline.length - 1 && (
+                            <div style={{ width: 2, height: 28, background: 'var(--border)', marginTop: 3, marginBottom: 3 }} />
+                          )}
+                        </div>
+                        <div style={{ paddingTop: 7, paddingBottom: i < generatedSplit.timeline.length - 1 ? 0 : 10 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                            <span style={{ fontFamily: 'var(--font-head)', fontWeight: 800, fontSize: 14 }}>{milestone.label}</span>
+                            <span style={{ fontSize: 11, fontWeight: 700, background: 'rgba(15,159,110,0.1)', color: 'var(--accent)', borderRadius: 6, padding: '2px 7px' }}>Week {milestone.week}</span>
+                          </div>
+                          <div style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.55 }}>{milestone.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="section-title" style={{ marginBottom: 10 }}>Weekly Plan</div>
                 {generatedSplit.plans.map(plan => {
                   const absOnlyDays = new Set(['Cardio + Core', 'Mobility']);
                   const splitType = plan.name.split(' ·')[0].trim();
